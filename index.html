@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#30312d">
+  <meta name="description" content="《屋邨仔 ESTATE KID》——向 Game & Watch 致敬的 1990 年代香港公共屋邨單色 LCD 網頁小遊戲。">
+  <meta property="og:title" content="屋邨仔｜ESTATE KID">
+  <meta property="og:description" content="守住十四樓走廊，咪打中阿婆！一款可離線玩的單色 LCD 網頁小遊戲。">
+  <meta property="og:type" content="website">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="屋邨仔">
+  <link rel="icon" href="data:,">
+  <title>屋邨仔｜ESTATE KID</title>
+  <style>
+    :root {
+      color-scheme: only light;
+      --shell: #c9c9c1;
+      --shell-hi: #e1e1da;
+      --shell-lo: #85867f;
+      --ink: #242520;
+      --button: #252724;
+      --red: #9c302c;
+      --lcd: #979f79;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      min-height: 100dvh;
+      padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+      background:
+        radial-gradient(circle at 50% 20%, #5b5d58 0, #30312e 52%, #20211f 100%);
+      font-family: Arial, "PingFang TC", "Noto Sans TC", sans-serif;
+      color: var(--ink);
+    }
+
+    .device {
+      position: relative;
+      width: min(94vw, 860px);
+      padding: clamp(13px, 2.2vw, 25px) clamp(13px, 2.3vw, 26px) clamp(17px, 2.8vw, 31px);
+      border: 3px solid #777871;
+      border-radius: 22px 22px 44px 22px;
+      background:
+        linear-gradient(112deg, rgba(255,255,255,.58), transparent 23%),
+        linear-gradient(180deg, var(--shell-hi), var(--shell) 55%, #b6b7b0);
+      box-shadow:
+        0 22px 45px rgba(0,0,0,.42),
+        inset 2px 2px 1px rgba(255,255,255,.7),
+        inset -4px -5px 2px rgba(62,63,59,.24);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 0 6px 7px;
+      letter-spacing: .12em;
+      font-size: clamp(10px, 1.6vw, 14px);
+      font-weight: 700;
+    }
+
+    .brand-row .zh { font-size: 1.25em; letter-spacing: .18em; }
+    .brand-row .en { font-weight: 500; }
+
+    .screen-bezel {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 2 / 1;
+      padding: clamp(7px, 1.2vw, 12px);
+      border: 3px solid #646660;
+      border-radius: 12px;
+      background: #777972;
+      box-shadow:
+        inset 0 5px 10px rgba(0,0,0,.48),
+        0 2px 1px rgba(255,255,255,.72);
+    }
+
+    .lcd-glass {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border: 1px solid #575d47;
+      border-radius: 5px;
+      background: var(--lcd);
+      box-shadow:
+        inset 0 0 22px rgba(27,31,20,.28),
+        inset 0 2px 8px rgba(255,255,225,.22);
+    }
+
+    .lcd-glass::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, rgba(14,18,12,.012) 1px 3px),
+        linear-gradient(180deg, rgba(255,255,220,.08), transparent 28%, rgba(34,40,24,.04));
+      mix-blend-mode: soft-light;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: crisp-edges;
+    }
+
+    .panel-caption {
+      margin: 8px 0 0;
+      text-align: center;
+      font-size: clamp(7px, 1.25vw, 11px);
+      letter-spacing: .16em;
+      color: #565751;
+    }
+
+    .controls {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      min-height: clamp(160px, 26vw, 225px);
+      padding: 10px clamp(6px, 2vw, 20px) 0;
+    }
+
+    button {
+      border: 0;
+      color: #ebe9df;
+      font: 700 12px/1 Arial, sans-serif;
+      cursor: pointer;
+      touch-action: none;
+      outline: none;
+    }
+
+    button:focus-visible {
+      outline: 4px solid #f4bd48;
+      outline-offset: 4px;
+    }
+
+    .dpad {
+      position: relative;
+      width: clamp(128px, 22vw, 178px);
+      aspect-ratio: 1;
+      filter: drop-shadow(0 7px 2px rgba(0,0,0,.32));
+      justify-self: start;
+    }
+
+    .dpad::before, .dpad::after {
+      content: "";
+      position: absolute;
+      border: 2px solid #131412;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3a3c38, #181a18);
+      box-shadow: inset 2px 2px 2px rgba(255,255,255,.13);
+    }
+
+    .dpad::before { left: 34%; top: 5%; width: 32%; height: 90%; }
+    .dpad::after { left: 5%; top: 34%; width: 90%; height: 32%; }
+
+    .dpad button {
+      position: absolute;
+      z-index: 2;
+      width: 33%;
+      height: 33%;
+      background: transparent;
+    }
+
+    .dpad .left { left: 3%; top: 34%; }
+    .dpad .right { right: 3%; top: 34%; }
+    .dpad .up { left: 33.5%; top: 3%; pointer-events: none; }
+    .dpad .down { left: 33.5%; bottom: 3%; pointer-events: none; }
+    .dpad .left::after, .dpad .right::after,
+    .dpad .up::after, .dpad .down::after {
+      content: "";
+      position: absolute;
+      width: 0;
+      height: 0;
+      opacity: .35;
+    }
+    .dpad .left::after { left: 26%; top: 37%; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 11px solid #080908; }
+    .dpad .right::after { right: 26%; top: 37%; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 11px solid #080908; }
+    .dpad .up::after { top: 24%; left: 37%; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 11px solid #080908; }
+    .dpad .down::after { bottom: 24%; left: 37%; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 11px solid #080908; }
+
+    .dpad.pressed-left, .dpad.pressed-right { filter: drop-shadow(0 3px 1px rgba(0,0,0,.34)); transform: translateY(3px); }
+
+    .system-buttons {
+      display: flex;
+      gap: clamp(14px, 2vw, 25px);
+      align-self: end;
+      margin-bottom: 18px;
+    }
+
+    .system-button-wrap { text-align: center; }
+    .system-button-wrap span {
+      display: block;
+      margin-top: 7px;
+      color: #55564f;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .1em;
+    }
+
+    .system-btn {
+      width: clamp(50px, 7.5vw, 66px);
+      height: 16px;
+      border: 2px solid #333430;
+      border-radius: 999px;
+      background: linear-gradient(#65665f, #30312e);
+      box-shadow: 0 5px 2px rgba(0,0,0,.3), inset 0 2px rgba(255,255,255,.2);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: clamp(12px, 2.8vw, 27px);
+      transform: rotate(-13deg);
+    }
+
+    .action-wrap { text-align: center; }
+    .action-wrap span {
+      display: block;
+      margin-top: 9px;
+      color: #6e2523;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .action-btn {
+      width: clamp(60px, 10vw, 84px);
+      aspect-ratio: 1;
+      border: 3px solid #69211f;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 28%, #cf554e, var(--red) 55%, #681d1b);
+      box-shadow: 0 8px 2px rgba(0,0,0,.32), inset 3px 4px 3px rgba(255,255,255,.2);
+      font-size: 20px;
+    }
+
+    button.pressed, .system-btn:active, .action-btn:active {
+      transform: translateY(5px);
+      box-shadow: 0 2px 1px rgba(0,0,0,.35), inset 2px 3px 5px rgba(0,0,0,.28);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (orientation: landscape) and (max-height: 700px) {
+      body { padding: 0; background: #bfc0b9; }
+      .device {
+        width: 100vw;
+        height: 100dvh;
+        max-width: none;
+        padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+        border: 0;
+        border-radius: 0;
+        overflow: hidden;
+      }
+      .brand-row {
+        position: absolute;
+        z-index: 4;
+        top: max(8px, env(safe-area-inset-top));
+        left: 50%;
+        width: min(83vw, calc((100dvh - 16px) * 2));
+        transform: translateX(-50%);
+        padding: 5px 10px;
+        color: rgba(36,37,32,.75);
+        pointer-events: none;
+      }
+      .screen-bezel {
+        position: absolute;
+        inset: 6px auto auto 50%;
+        width: min(86vw, calc((100dvh - 12px) * 2));
+        height: calc(100dvh - 12px);
+        transform: translateX(-50%);
+        padding: 8px;
+        border-width: 2px;
+      }
+      .panel-caption { display: none; }
+      .controls { position: absolute; inset: 0; display: block; min-height: 0; padding: 0; pointer-events: none; }
+      .dpad, .actions, .system-buttons { pointer-events: auto; opacity: .35; }
+      .dpad:has(button.pressed), .actions:has(button.pressed), .system-buttons:has(button.pressed) { opacity: .6; }
+      .dpad {
+        position: absolute;
+        z-index: 6;
+        left: max(12px, env(safe-area-inset-left));
+        bottom: max(10px, env(safe-area-inset-bottom));
+        width: min(31vh, 150px);
+      }
+      .actions {
+        position: absolute;
+        z-index: 6;
+        right: max(14px, env(safe-area-inset-right));
+        bottom: max(18px, env(safe-area-inset-bottom));
+      }
+      .action-btn { width: min(16vh, 70px); border-width: 2px; }
+      .action-wrap span { margin-top: 5px; }
+      .system-buttons {
+        position: absolute;
+        z-index: 6;
+        left: 50%;
+        bottom: max(8px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        margin: 0;
+      }
+      .system-btn { width: min(12vw, 60px); height: 13px; }
+      .system-button-wrap span { margin-top: 4px; color: #20211e; }
+    }
+
+    @media (max-width: 520px) and (orientation: portrait) {
+      .device { width: 98vw; }
+      .controls { grid-template-columns: 1fr auto 1fr; min-height: 190px; padding-inline: 2px; }
+      .system-buttons { gap: 8px; margin-bottom: 8px; }
+      .system-btn { width: 43px; }
+      .dpad { width: 125px; }
+      .actions { gap: 7px; }
+      .action-btn { width: 58px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="device" aria-label="屋邨仔掌上遊戲機">
+    <header class="brand-row" aria-hidden="true">
+      <span class="zh">屋邨仔</span>
+      <span class="en">ESTATE KID</span>
+    </header>
+
+    <section class="screen-bezel" aria-label="單色液晶遊戲畫面">
+      <div class="lcd-glass">
+        <canvas id="screen" role="img" aria-label="屋邨仔遊戲畫面：守住左右走廊，避開阿婆"></canvas>
+      </div>
+    </section>
+
+    <p class="panel-caption">GAME &amp; WATCH STYLE / 1990s HONG KONG</p>
+
+    <section class="controls" aria-label="遊戲操作掣">
+      <div class="dpad" id="dpad" aria-label="方向掣">
+        <button class="up" tabindex="-1" aria-hidden="true"></button>
+        <button class="left" data-control="left" aria-label="向左">◀</button>
+        <button class="right" data-control="right" aria-label="向右">▶</button>
+        <button class="down" tabindex="-1" aria-hidden="true"></button>
+      </div>
+
+      <div class="system-buttons">
+        <div class="system-button-wrap">
+          <button class="system-btn" data-control="select" aria-label="選擇模式；長按一秒切換靜音"></button>
+          <span>SELECT</span>
+        </div>
+        <div class="system-button-wrap">
+          <button class="system-btn" data-control="start" aria-label="開始遊戲"></button>
+          <span>START</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div class="action-wrap">
+          <button class="action-btn" data-control="b" aria-label="B 掣：格擋">B</button>
+          <span>格擋</span>
+        </div>
+        <div class="action-wrap">
+          <button class="action-btn" data-control="a" aria-label="A 掣：攻擊">A</button>
+          <span>攻擊</span>
+        </div>
+      </div>
+    </section>
+    <p id="live" class="sr-only" aria-live="polite"></p>
+  </main>
+
+  <script>
+    'use strict';
+
+    /* ─────────────────────────────
+       SEGMENTS：所有 LCD 區段定義
+       ───────────────────────────── */
+    const canvas = document.getElementById('screen');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const W = 840;
+    const H = 420;
+    const INK = '#1a1c17';
+    const GHOST = 0.085;
+    const LIT = 0.9;
+
+    const SEGMENTS = {
+      poly(points, alpha = LIT) {
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = INK;
+        ctx.beginPath();
+        ctx.moveTo(points[0][0], points[0][1]);
+        for (let i = 1; i < points.length; i += 1) ctx.lineTo(points[i][0], points[i][1]);
+        ctx.closePath();
+        ctx.fill();
+      },
+
+      rect(x, y, w, h, alpha = LIT) {
+        this.poly([[x,y],[x+w,y],[x+w,y+h],[x,y+h]], alpha);
+      },
+
+      line(x1, y1, x2, y2, thickness, alpha = LIT) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const len = Math.hypot(dx, dy) || 1;
+        const px = -dy / len * thickness / 2;
+        const py = dx / len * thickness / 2;
+        this.poly([[x1+px,y1+py],[x2+px,y2+py],[x2-px,y2-py],[x1-px,y1-py]], alpha);
+      },
+
+      seven(x, y, value, scale = 1, alpha = LIT) {
+        const map = {
+          '0': 'ab cdef'.replace(/ /g,''), '1': 'bc', '2': 'abdeg', '3': 'abcdg',
+          '4': 'bcfg', '5': 'acdfg', '6': 'acdefg', '7': 'abc', '8': 'abcdefg', '9': 'abcdfg',
+          '-': 'g', ' ': ''
+        };
+        const active = map[String(value)] || '';
+        const t = 4 * scale;
+        const l = 18 * scale;
+        const pieces = {
+          a: [[x+t,y],[x+l,y],[x+l+t,y+t],[x+l,y+t*2],[x+t,y+t*2],[x,y+t]],
+          g: [[x+t,y+22*scale],[x+l,y+22*scale],[x+l+t,y+26*scale],[x+l,y+30*scale],[x+t,y+30*scale],[x,y+26*scale]],
+          d: [[x+t,y+48*scale],[x+l,y+48*scale],[x+l+t,y+52*scale],[x+l,y+56*scale],[x+t,y+56*scale],[x,y+52*scale]],
+          f: [[x,y+t],[x+t,y+t*2],[x+t,y+21*scale],[x,y+25*scale],[x-t,y+21*scale],[x-t,y+t*2]],
+          b: [[x+l+t,y+t],[x+l+t*2,y+t*2],[x+l+t*2,y+21*scale],[x+l+t,y+25*scale],[x+l,y+21*scale],[x+l,y+t*2]],
+          e: [[x,y+29*scale],[x+t,y+33*scale],[x+t,y+47*scale],[x,y+51*scale],[x-t,y+47*scale],[x-t,y+33*scale]],
+          c: [[x+l+t,y+29*scale],[x+l+t*2,y+33*scale],[x+l+t*2,y+47*scale],[x+l+t,y+51*scale],[x+l,y+47*scale],[x+l,y+33*scale]]
+        };
+        for (const key of 'abcdefg') this.poly(pieces[key], active.includes(key) ? alpha : GHOST);
+      },
+
+      colon(x, y, on, scale = 1) {
+        this.rect(x, y + 15*scale, 5*scale, 6*scale, on ? LIT : GHOST);
+        this.rect(x, y + 36*scale, 5*scale, 6*scale, on ? LIT : GHOST);
+      },
+
+      hero(x, pose, alpha) {
+        const y = 280;
+        const left = pose.includes('left');
+        const attack = pose.includes('attack');
+        const hit = pose === 'hit';
+        this.poly([[x-16,y-55],[x-8,y-67],[x+8,y-67],[x+16,y-55],[x+11,y-41],[x-11,y-41]], alpha);
+        this.rect(x-12, y-39, 24, 37, alpha);
+        if (hit) {
+          this.line(x-8,y-25,x-31,y-44,7,alpha); this.line(x+8,y-25,x+31,y-44,7,alpha);
+          this.line(x-6,y-2,x-24,y+26,8,alpha); this.line(x+6,y-2,x+24,y+26,8,alpha);
+          this.line(x-30,y-63,x-41,y-73,4,alpha); this.line(x-30,y-73,x-41,y-63,4,alpha);
+        } else {
+          const dir = left ? -1 : 1;
+          this.line(x-8*dir,y-30,x-22*dir,y-13,8,alpha);
+          this.line(x+8*dir,y-30,x+17*dir,y-9,8,alpha);
+          this.line(x-7,y-2,x-13,y+27,9,alpha); this.line(x+7,y-2,x+14,y+27,9,alpha);
+          this.rect(x + dir*5, y-58, 5, 4, alpha);
+          if (attack) {
+            this.line(x+dir*8,y-31,x+dir*40,y-38,10,alpha);
+            this.poly([[x+dir*38,y-45],[x+dir*58,y-39],[x+dir*38,y-31]],alpha);
+          }
+        }
+      },
+
+      enemy(x, boss, alpha) {
+        const y = 280;
+        if (boss) {
+          this.poly([[x-16,y-64],[x-7,y-78],[x,y-66],[x+8,y-80],[x+17,y-63]], alpha);
+          this.poly([[x-21,y-58],[x-14,y-69],[x+14,y-69],[x+21,y-58],[x+14,y-42],[x-14,y-42]],alpha);
+          this.rect(x-17,y-40,34,40,alpha);
+          this.line(x-14,y-30,x-32,y-6,10,alpha); this.line(x+14,y-30,x+32,y-6,10,alpha);
+          this.line(x-9,y,x-18,y+27,11,alpha); this.line(x+9,y,x+18,y+27,11,alpha);
+          this.rect(x-10,y-57,7,5,alpha); this.rect(x+5,y-57,7,5,alpha);
+        } else {
+          this.poly([[x-15,y-58],[x-8,y-68],[x+9,y-68],[x+16,y-56],[x+10,y-43],[x-10,y-43]],alpha);
+          this.poly([[x-20,y-42],[x+18,y-42],[x+13,y-2],[x-14,y-2]],alpha);
+          this.line(x-15,y-32,x-29,y-10,8,alpha); this.line(x+14,y-32,x+28,y-10,8,alpha);
+          this.line(x-7,y-2,x-13,y+27,9,alpha); this.line(x+7,y-2,x+13,y+27,9,alpha);
+          this.rect(x-9,y-57,6,4,alpha); this.rect(x+4,y-57,6,4,alpha);
+          this.line(x-8,y-49,x+8,y-49,3,alpha);
+        }
+      },
+
+      grandma(x, facingRight, alpha) {
+        const y = 292;
+        const dir = facingRight ? 1 : -1;
+        this.poly([[x-21,y-49],[x-12,y-65],[x+2,y-68],[x+13,y-55],[x+8,y-42],[x-9,y-41]],alpha);
+        this.poly([[x-15,y-42],[x+9,y-42],[x+22*dir,y-8],[x-4,y-4],[x-19,y-19]],alpha);
+        this.line(x-10,y-5,x-20,y+19,8,alpha); this.line(x+4,y-5,x+14,y+20,8,alpha);
+        this.line(x+9*dir,y-29,x+30*dir,y-17,7,alpha);
+        this.poly([[x+24*dir,y-15],[x+40*dir,y-12],[x+37*dir,y+8],[x+20*dir,y+6]],alpha);
+        this.line(x+20*dir,y-16,x+29*dir,y-24,3,alpha);
+        this.rect(x-8,y-57,4,4,alpha);
+      },
+
+      cross(x, y, active) {
+        const a = active ? LIT : GHOST;
+        this.line(x-7,y-7,x+7,y+7,5,a); this.line(x+7,y-7,x-7,y+7,5,a);
+      },
+
+      speaker(x, y, on) {
+        const a = on ? LIT : GHOST;
+        this.poly([[x,y+7],[x+7,y+7],[x+14,y],[x+14,y+24],[x+7,y+17],[x,y+17]],a);
+        this.line(x+19,y+6,x+23,y+12,3,a); this.line(x+23,y+12,x+19,y+18,3,a);
+      },
+
+      shield(x, y, on) {
+        const a = on ? LIT : GHOST;
+        this.poly([[x,y],[x+17,y+5],[x+14,y+24],[x+8,y+31],[x+2,y+24]],a);
+        ctx.globalCompositeOperation = 'destination-out';
+        this.poly([[x+5,y+7],[x+12,y+9],[x+10,y+21],[x+8,y+24],[x+6,y+20]],1);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+    };
+
+    /* ─────────────────────────────
+       STATE：單一遊戲狀態
+       ───────────────────────────── */
+    const STATE = {
+      mode: 0,
+      modes: ['GAME A', 'GAME B', 'TIME'],
+      phase: 'ready',
+      score: 0,
+      highScore: 0,
+      misses: 0,
+      facing: 'right',
+      pose: 'right',
+      enemies: [],
+      grandma: null,
+      neighbourGlow: 0,
+      blockCooldown: 0,
+      flash: false,
+      muted: false,
+      tickTimer: null,
+      spawnSerial: 0,
+      bossTriggered: { 200: false, 500: false },
+      pendingBoss: false,
+      lastTickAt: 0
+    };
+
+    try {
+      STATE.highScore = Math.max(0, Number(localStorage.getItem('estate-kid-high-score')) || 0);
+      STATE.muted = localStorage.getItem('estate-kid-muted') === '1';
+    } catch (_) { /* 靜默降級 */ }
+
+    const MODE = {
+      0: { tick: 550, maxEnemies: 2, grandmaRate: 0.12, spawnChance: 0.40 },
+      1: { tick: 420, maxEnemies: 3, grandmaRate: 0.20, spawnChance: 0.53 }
+    };
+
+    const laneX = {
+      left: { 3: 110, 2: 205, 1: 300 },
+      right: { 1: 540, 2: 635, 3: 730 }
+    };
+    const grannyPath = [-3, -2, -1, 0, 1, 2, 3];
+    const grannyX = { '-3': 105, '-2': 205, '-1': 305, '0': 420, '1': 535, '2': 635, '3': 735 };
+
+    function tickSpeed() {
+      if (STATE.mode === 2) return 1000;
+      const boosts = Math.floor(STATE.score / 100);
+      return Math.max(200, MODE[STATE.mode].tick * Math.pow(0.92, boosts));
+    }
+
+    function announce(message) {
+      const live = document.getElementById('live');
+      live.textContent = '';
+      setTimeout(() => { live.textContent = message; }, 20);
+    }
+
+    function persistHighScore() {
+      if (STATE.score <= STATE.highScore) return;
+      STATE.highScore = STATE.score;
+      try { localStorage.setItem('estate-kid-high-score', String(STATE.highScore)); } catch (_) { /* 靜默降級 */ }
+    }
+
+    function resetRound() {
+      clearTimeout(STATE.tickTimer);
+      STATE.score = 0;
+      STATE.misses = 0;
+      STATE.facing = 'right';
+      STATE.pose = 'right';
+      STATE.enemies = [];
+      STATE.grandma = null;
+      STATE.neighbourGlow = 0;
+      STATE.blockCooldown = 0;
+      STATE.flash = false;
+      STATE.pendingBoss = false;
+      STATE.bossTriggered = { 200: false, 500: false };
+    }
+
+    function startGame() {
+      audio.init();
+      if (STATE.mode === 2) {
+        STATE.phase = 'ready';
+        audio.turn();
+        render();
+        return;
+      }
+      resetRound();
+      STATE.phase = 'playing';
+      announce(`${STATE.modes[STATE.mode]} 開始`);
+      audio.start();
+      render();
+      scheduleTick();
+    }
+
+    function scheduleTick() {
+      clearTimeout(STATE.tickTimer);
+      if (STATE.phase !== 'playing') return;
+      STATE.tickTimer = setTimeout(tick, tickSpeed());
+    }
+
+    function spawnEnemy(side, boss = false) {
+      STATE.enemies.push({
+        id: ++STATE.spawnSerial,
+        side,
+        pos: 3,
+        linger: 1,
+        boss,
+        hp: boss ? 2 : 1
+      });
+      if (boss) audio.boss();
+    }
+
+    function spawnGrandma() {
+      const fromLeft = Math.random() < 0.5;
+      STATE.grandma = { index: fromLeft ? 0 : grannyPath.length - 1, step: fromLeft ? 1 : -1 };
+    }
+
+    function maybeSpawn() {
+      const cfg = MODE[STATE.mode];
+      if (STATE.pendingBoss && STATE.enemies.length < cfg.maxEnemies) {
+        spawnEnemy(Math.random() < 0.5 ? 'left' : 'right', true);
+        STATE.pendingBoss = false;
+        return;
+      }
+      const pressure = Math.min(0.18, STATE.score / 1400);
+      if (Math.random() >= cfg.spawnChance + pressure) return;
+      if (!STATE.grandma && Math.random() < cfg.grandmaRate) {
+        spawnGrandma();
+      } else if (STATE.enemies.length < cfg.maxEnemies) {
+        spawnEnemy(Math.random() < 0.5 ? 'left' : 'right');
+      }
+    }
+
+    function addScore(points) {
+      const before = STATE.score;
+      STATE.score = Math.min(9999, STATE.score + points);
+      persistHighScore();
+      for (const milestone of [200, 500]) {
+        if (before < milestone && STATE.score >= milestone && !STATE.bossTriggered[milestone]) {
+          STATE.bossTriggered[milestone] = true;
+          STATE.pendingBoss = true;
+        }
+      }
+    }
+
+    function registerMiss(reason) {
+      if (STATE.phase !== 'playing') return;
+      STATE.misses = Math.min(3, STATE.misses + 1);
+      STATE.pose = 'hit';
+      audio.hurt();
+      setTimeout(() => audio.miss(), 90);
+      announce(reason === 'grandma' ? '打中阿婆！扣三分，記一次失誤' : `失誤 ${STATE.misses} 次`);
+      setTimeout(() => {
+        if (STATE.phase === 'playing') {
+          STATE.pose = STATE.facing;
+          render();
+        }
+      }, 180);
+      if (STATE.misses >= 3) gameOver();
+    }
+
+    function gameOver() {
+      STATE.phase = 'over';
+      clearTimeout(STATE.tickTimer);
+      persistHighScore();
+      audio.gameOver();
+      announce(`遊戲結束，得分 ${STATE.score}`);
+      render();
+    }
+
+    function flashScreen() {
+      const frames = [true, false, true, false];
+      frames.forEach((value, i) => setTimeout(() => {
+        STATE.flash = value;
+        render();
+      }, i * 105));
+    }
+
+    /* ─────────────────────────────
+       tick()：固定節拍邏輯推進
+       ───────────────────────────── */
+    function tick() {
+      if (STATE.phase !== 'playing') return;
+      STATE.lastTickAt = Date.now();
+      audio.tick();
+
+      if (STATE.blockCooldown > 0) STATE.blockCooldown -= 1;
+      if (STATE.neighbourGlow > 0) STATE.neighbourGlow -= 1;
+
+      let wasHit = false;
+      const survivors = [];
+      for (const enemy of STATE.enemies) {
+        if (enemy.pos > 1) {
+          enemy.pos -= 1;
+          if (enemy.pos === 1) enemy.linger = 1;
+          survivors.push(enemy);
+        } else {
+          enemy.linger -= 1;
+          if (enemy.linger <= 0 && !wasHit) {
+            wasHit = true;
+            registerMiss('enemy');
+          } else if (enemy.linger > 0) {
+            survivors.push(enemy);
+          }
+        }
+      }
+      STATE.enemies = survivors;
+
+      if (STATE.grandma) {
+        STATE.grandma.index += STATE.grandma.step;
+        if (STATE.grandma.index < 0 || STATE.grandma.index >= grannyPath.length) {
+          STATE.grandma = null;
+          STATE.neighbourGlow = 2;
+          audio.safe();
+        }
+      }
+
+      if (STATE.phase === 'playing') {
+        maybeSpawn();
+        render();
+        scheduleTick();
+      }
+    }
+
+    /* ─────────────────────────────
+       input：觸控及鍵盤
+       ───────────────────────────── */
+    function face(direction) {
+      audio.init();
+      if (STATE.mode === 2) return;
+      STATE.facing = direction;
+      if (STATE.phase !== 'over') STATE.pose = direction;
+      audio.turn();
+      render();
+    }
+
+    function grandmaInStrike(direction) {
+      if (!STATE.grandma) return false;
+      const p = grannyPath[STATE.grandma.index];
+      return p === 0 || (direction === 'left' && p === -1) || (direction === 'right' && p === 1);
+    }
+
+    function attack() {
+      audio.init();
+      if (STATE.phase !== 'playing') return;
+      STATE.pose = `attack-${STATE.facing}`;
+      render();
+
+      if (grandmaInStrike(STATE.facing)) {
+        STATE.score = Math.max(0, STATE.score - 3);
+        STATE.grandma = null;
+        audio.grandma();
+        flashScreen();
+        registerMiss('grandma');
+      } else {
+        const target = STATE.enemies.find(enemy => enemy.side === STATE.facing && enemy.pos === 1);
+        if (target) {
+          target.hp -= 1;
+          audio.hit(target.boss);
+          if (target.hp <= 0) {
+            STATE.enemies = STATE.enemies.filter(enemy => enemy.id !== target.id);
+            addScore(target.boss ? 5 : 1);
+            announce(target.boss ? '打低大佬，加五分' : `得分 ${STATE.score}`);
+          } else {
+            // 大佬要在最近一格連打兩下；第一下只令他短暫硬直。
+            target.pos = 1;
+            target.linger = 1;
+            announce('大佬仲未倒低');
+          }
+        } else {
+          audio.swing();
+        }
+      }
+
+      setTimeout(() => {
+        if (STATE.phase === 'playing') {
+          STATE.pose = STATE.facing;
+          render();
+        }
+      }, 145);
+      render();
+    }
+
+    function block() {
+      audio.init();
+      if (STATE.phase !== 'playing' || STATE.blockCooldown > 0) {
+        audio.denied();
+        return;
+      }
+      STATE.blockCooldown = 3;
+      const target = STATE.enemies.find(enemy => enemy.side === STATE.facing && enemy.pos === 1);
+      if (target) {
+        target.pos = 2;
+        target.linger = 1;
+        audio.block();
+        announce('格擋成功');
+      } else {
+        audio.swing();
+      }
+      render();
+    }
+
+    function cycleMode() {
+      audio.init();
+      clearTimeout(STATE.tickTimer);
+      STATE.phase = 'ready';
+      STATE.mode = (STATE.mode + 1) % STATE.modes.length;
+      STATE.enemies = [];
+      STATE.grandma = null;
+      audio.select();
+      announce(`已選擇 ${STATE.modes[STATE.mode]}`);
+      render();
+    }
+
+    function toggleMute() {
+      STATE.muted = !STATE.muted;
+      try { localStorage.setItem('estate-kid-muted', STATE.muted ? '1' : '0'); } catch (_) { /* 靜默降級 */ }
+      if (!STATE.muted) { audio.init(); audio.select(); }
+      announce(STATE.muted ? '已靜音' : '已開啟聲音');
+      render();
+    }
+
+    const actions = { left: () => face('left'), right: () => face('right'), a: attack, b: block, start: startGame };
+    let selectTimer = null;
+    let selectLong = false;
+
+    function pressVisual(button, down) {
+      button.classList.toggle('pressed', down);
+      if (button.dataset.control === 'left' || button.dataset.control === 'right') {
+        document.getElementById('dpad').classList.toggle(`pressed-${button.dataset.control}`, down);
+      }
+    }
+
+    document.querySelectorAll('[data-control]').forEach(button => {
+      const control = button.dataset.control;
+      button.addEventListener('touchstart', event => event.preventDefault(), { passive: false });
+      button.addEventListener('contextmenu', event => event.preventDefault());
+      button.addEventListener('pointerdown', event => {
+        event.preventDefault();
+        button.setPointerCapture?.(event.pointerId);
+        pressVisual(button, true);
+        audio.init();
+        if (control === 'select') {
+          selectLong = false;
+          clearTimeout(selectTimer);
+          selectTimer = setTimeout(() => { selectLong = true; toggleMute(); }, 1000);
+        } else {
+          actions[control]?.();
+        }
+      });
+      const release = event => {
+        event.preventDefault();
+        pressVisual(button, false);
+        if (control === 'select') {
+          clearTimeout(selectTimer);
+          if (!selectLong) cycleMode();
+        }
+      };
+      button.addEventListener('pointerup', release);
+      button.addEventListener('pointercancel', event => {
+        clearTimeout(selectTimer);
+        pressVisual(button, false);
+        event.preventDefault();
+      });
+    });
+
+    const heldKeys = new Set();
+    window.addEventListener('keydown', event => {
+      const map = {
+        ArrowLeft: 'left', ArrowRight: 'right', KeyZ: 'a', KeyJ: 'a',
+        KeyX: 'b', KeyK: 'b', Enter: 'start', ShiftRight: 'select'
+      };
+      const control = map[event.code];
+      if (!control) return;
+      event.preventDefault();
+      if (heldKeys.has(event.code)) return;
+      heldKeys.add(event.code);
+      audio.init();
+      const button = document.querySelector(`[data-control="${control}"]`);
+      if (button) pressVisual(button, true);
+      if (control === 'select') {
+        selectLong = false;
+        selectTimer = setTimeout(() => { selectLong = true; toggleMute(); }, 1000);
+      } else actions[control]?.();
+    });
+
+    window.addEventListener('keyup', event => {
+      const map = { ArrowLeft:'left', ArrowRight:'right', KeyZ:'a', KeyJ:'a', KeyX:'b', KeyK:'b', Enter:'start', ShiftRight:'select' };
+      const control = map[event.code];
+      if (!control) return;
+      event.preventDefault();
+      heldKeys.delete(event.code);
+      const button = document.querySelector(`[data-control="${control}"]`);
+      if (button) pressVisual(button, false);
+      if (control === 'select') {
+        clearTimeout(selectTimer);
+        if (!selectLong) cycleMode();
+      }
+    });
+
+    window.addEventListener('blur', () => {
+      heldKeys.clear();
+      clearTimeout(selectTimer);
+      document.querySelectorAll('.pressed').forEach(el => el.classList.remove('pressed'));
+      document.getElementById('dpad').classList.remove('pressed-left', 'pressed-right');
+    });
+
+    /* ─────────────────────────────
+       audio：Web Audio 單聲道蜂鳴器
+       ───────────────────────────── */
+    const audio = {
+      context: null,
+      master: null,
+      init() {
+        if (this.context) {
+          if (this.context.state === 'suspended') this.context.resume().catch(() => {});
+          return;
+        }
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        try {
+          this.context = new AudioCtx();
+          this.master = this.context.createGain();
+          this.master.gain.value = 0.12;
+          this.master.connect(this.context.destination);
+        } catch (_) { this.context = null; }
+      },
+      tone(freq, duration = 0.05, when = 0, type = 'square', volume = 0.55, endFreq = null) {
+        if (STATE.muted || !this.context || !this.master) return;
+        const t = this.context.currentTime + when;
+        const oscillator = this.context.createOscillator();
+        const gain = this.context.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(freq, t);
+        if (endFreq) oscillator.frequency.exponentialRampToValueAtTime(Math.max(25, endFreq), t + duration);
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(Math.max(0.001, volume), t + 0.006);
+        gain.gain.setValueAtTime(Math.max(0.001, volume), t + Math.max(0.007, duration - 0.012));
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+        oscillator.connect(gain); gain.connect(this.master);
+        oscillator.start(t); oscillator.stop(t + duration + 0.015);
+      },
+      turn() { this.tone(1150, .022, 0, 'square', .23); },
+      select() { this.tone(740, .045, 0, 'square', .3); },
+      start() { this.tone(440,.05,0); this.tone(660,.06,.06); },
+      swing() { this.tone(210, .035, 0, 'square', .18); },
+      hit(boss) { this.tone(boss ? 360 : 520,.055,0); this.tone(boss ? 520 : 780,.075,.055); },
+      block() { this.tone(1350,.025,0,'square',.35); this.tone(760,.035,.025,'square',.3); this.tone(1650,.025,.06,'square',.24); },
+      denied() { this.tone(150,.035,0,'square',.15); },
+      hurt() { this.tone(280,.16,0,'square',.5,95); },
+      grandma() { this.tone(105,.55,0,'sawtooth',.62,58); },
+      miss() { this.tone(360,.07,0); this.tone(270,.07,.085); this.tone(180,.1,.17); },
+      gameOver() { [330,247,196,147,98].forEach((f,i) => this.tone(f,.13,i*.13,'square',.45)); },
+      boss() { [220,294,392,523].forEach((f,i) => this.tone(f,.08,i*.085,'square',.42)); },
+      tick() { this.tone(960,.009,0,'square',.035); },
+      safe() { this.tone(680,.035,0,'square',.12); this.tone(880,.035,.04,'square',.1); }
+    };
+
+    /* ─────────────────────────────
+       render()：只切換區段透明度
+       ───────────────────────────── */
+    function resizeCanvas() {
+      const dpr = Math.min(3, window.devicePixelRatio || 1);
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      render();
+    }
+
+    function drawDigits(value, digits, x, y, scale, alpha = LIT) {
+      const str = String(value).padStart(digits, '0').slice(-digits);
+      const advance = 35 * scale;
+      [...str].forEach((digit, i) => SEGMENTS.seven(x + i * advance, y, digit, scale, alpha));
+    }
+
+    function drawClock(x, y, scale, large = false) {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const on = now.getSeconds() % 2 === 0;
+      const advance = 35 * scale;
+      SEGMENTS.seven(x, y, hh[0], scale);
+      SEGMENTS.seven(x + advance, y, hh[1], scale);
+      SEGMENTS.colon(x + advance*2 + (large ? 2 : 0), y, on, scale);
+      SEGMENTS.seven(x + advance*2 + 13*scale, y, mm[0], scale);
+      SEGMENTS.seven(x + advance*3 + 13*scale, y, mm[1], scale);
+    }
+
+    function drawStaticCorridor() {
+      // 天花、地面與樓梯口
+      SEGMENTS.line(26, 104, 814, 104, 4, .33);
+      SEGMENTS.line(22, 323, 818, 323, 5, .5);
+      SEGMENTS.line(22, 365, 818, 365, 3, .28);
+      SEGMENTS.poly([[382,207],[458,207],[470,323],[370,323]],.28);
+      for (let i=0;i<4;i+=1) SEGMENTS.line(377+i*23,315,387+i*19,265,3,.22);
+
+      // 鐵閘門
+      for (const x of [39, 683]) {
+        SEGMENTS.rect(x, 136, 108, 151, .31);
+        ctx.globalCompositeOperation = 'destination-out';
+        SEGMENTS.rect(x+7,143,94,137,1);
+        ctx.globalCompositeOperation = 'source-over';
+        for (let i=0;i<6;i+=1) SEGMENTS.line(x+12+i*17,147,x+2+i*17,276,3,.38);
+        for (let i=0;i<6;i+=1) SEGMENTS.line(x+2+i*17,147,x+12+i*17,276,3,.38);
+      }
+
+      // 走廊燈
+      SEGMENTS.line(312,107,312,123,4,.55);
+      SEGMENTS.poly([[278,123],[346,123],[335,137],[289,137]],.66);
+      SEGMENTS.line(529,107,529,123,4,.55);
+      SEGMENTS.poly([[495,123],[563,123],[552,137],[506,137]],.66);
+
+      // 晾衫竹與衣物
+      SEGMENTS.line(172,145,353,119,4,.55);
+      SEGMENTS.line(486,121,663,145,4,.55);
+      SEGMENTS.poly([[211,140],[229,137],[238,157],[232,180],[205,180],[200,157]],.42);
+      SEGMENTS.poly([[591,138],[616,141],[621,181],[589,178]],.42);
+      SEGMENTS.line(270,131,270,174,3,.38);
+      SEGMENTS.poly([[254,153],[270,139],[286,153],[281,184],[259,184]],.42);
+
+      // 14 樓牌
+      SEGMENTS.rect(389,122,62,43,.55);
+      ctx.globalCompositeOperation = 'destination-out';
+      SEGMENTS.rect(394,127,52,33,1);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.save();
+      ctx.globalAlpha = .72; ctx.fillStyle = INK; ctx.font = '700 20px Arial'; ctx.textAlign = 'center';
+      ctx.fillText('14樓', 420, 151);
+      ctx.restore();
+
+      // 街坊回饋區段
+      ctx.save();
+      ctx.globalAlpha = STATE.neighbourGlow ? LIT : GHOST;
+      ctx.fillStyle = INK; ctx.font = '700 13px Arial'; ctx.textAlign = 'center';
+      ctx.fillText('街坊', 420, 193);
+      ctx.restore();
+    }
+
+    function drawStatus() {
+      ctx.save();
+      ctx.fillStyle = INK;
+      ctx.textBaseline = 'top';
+      ctx.globalAlpha = .76;
+      ctx.font = '700 12px Arial';
+      ctx.fillText('SCORE', 23, 20);
+      ctx.fillText('HI', 181, 20);
+      ctx.fillText('MISS', 711, 20);
+      ctx.fillText(STATE.modes[STATE.mode], 358, 88);
+      ctx.restore();
+
+      drawDigits(STATE.score, 4, 22, 38, .72);
+      drawDigits(STATE.highScore, 4, 180, 38, .48);
+      drawClock(377, 26, .62);
+      [0,1,2].forEach(i => SEGMENTS.cross(750 + i*27, 62, i < STATE.misses));
+      SEGMENTS.speaker(797, 15, !STATE.muted);
+      SEGMENTS.shield(675, 28, STATE.blockCooldown === 0);
+    }
+
+    function drawActors() {
+      // 每個可能出現的位置與動作幀都先以 ghost 顯示
+      for (const side of ['left','right']) {
+        for (const pos of [1,2,3]) {
+          SEGMENTS.enemy(laneX[side][pos], false, GHOST);
+          SEGMENTS.enemy(laneX[side][pos], true, GHOST * .85);
+        }
+      }
+      for (const p of grannyPath) SEGMENTS.grandma(grannyX[p], p < 0, GHOST);
+      ['left','right','attack-left','attack-right','hit'].forEach(pose => SEGMENTS.hero(420, pose, GHOST));
+
+      for (const enemy of STATE.enemies) SEGMENTS.enemy(laneX[enemy.side][enemy.pos], enemy.boss, LIT);
+      SEGMENTS.hero(420, STATE.pose, LIT);
+      if (STATE.grandma) {
+        const p = grannyPath[STATE.grandma.index];
+        const facingRight = STATE.grandma.step > 0;
+        // 中央阿婆最後繪製，遮住主角一部分
+        SEGMENTS.grandma(grannyX[p], facingRight, LIT);
+      }
+    }
+
+    function drawReadyOverlay() {
+      ctx.save();
+      ctx.fillStyle = INK;
+      ctx.textAlign = 'center';
+      if (STATE.mode === 2) {
+        drawClock(296, 205, 1.55, true);
+        ctx.globalAlpha = .68;
+        ctx.font = '700 15px Arial';
+        ctx.fillText('時間模式', 420, 307);
+      } else {
+        ctx.globalAlpha = .83;
+        ctx.font = '700 22px Arial';
+        ctx.fillText(STATE.phase === 'over' ? '遊戲結束' : '按 START 開始', 420, 345);
+        ctx.globalAlpha = .6;
+        ctx.font = '700 13px Arial';
+        ctx.fillText(STATE.phase === 'over' ? `得分 ${STATE.score}　最高 ${STATE.highScore}` : '左右轉身　A 攻擊　B 格擋', 420, 371);
+      }
+      ctx.restore();
+    }
+
+    function render() {
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+      const gradient = ctx.createLinearGradient(0,0,0,H);
+      gradient.addColorStop(0,'#9da57e');
+      gradient.addColorStop(.48,'#969e78');
+      gradient.addColorStop(1,'#8e9673');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0,0,W,H);
+
+      drawStatus();
+      drawStaticCorridor();
+      if (STATE.mode !== 2) drawActors();
+      if (STATE.phase !== 'playing' || STATE.mode === 2) drawReadyOverlay();
+
+      if (STATE.flash) {
+        ctx.globalAlpha = .36;
+        ctx.fillStyle = INK;
+        ctx.fillRect(0,0,W,H);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    window.addEventListener('resize', resizeCanvas, { passive: true });
+    window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 80), { passive: true });
+    setInterval(() => render(), 500);
+    resizeCanvas();
+
+    // 小型檢查介面，方便離線驗證遊戲規則，不影響遊玩。
+    Object.defineProperty(window, '__ESTATE_KID__', {
+      value: { STATE, tick, render, startGame, attack, block, face, cycleMode, spawnEnemy, spawnGrandma },
+      writable: false
+    });
+  </script>
+</body>
+</html>
